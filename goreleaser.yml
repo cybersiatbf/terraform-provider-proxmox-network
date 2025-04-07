@@ -1,27 +1,76 @@
-project_name: terraform-provider-proxmox-network
+# project_name: terraform-provider-proxmox-network
+# version: 2
+# builds:
+#   - binary: terraform-provider-proxmox-network
+#     main: main.go
+#     goos:
+#       - linux
+#     goarch:
+#       - amd64
+#     ldflags:
+#       - -s -w
+
+# archives:
+#   - id: default
+#     name_template: "{{ .ProjectName }}_v{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+
+# checksum:
+#   name_template: "SHA256SUMS"
+
+# signs:
+#   - artifacts: checksum
+#     cmd: gpg
+#     args: ["--batch", "--yes", "--armor", "--detach-sign", "--pinentry-mode", "loopback", "--output", "${signature}", "${artifact}"]
+#     signature: "${artifact}.sig"
+
+
 version: 2
+before:
+  hooks:
+    - go mod tidy
 builds:
-  - binary: terraform-provider-proxmox-network
-    main: main.go
-    goos:
-      - linux
-    goarch:
-      - amd64
-    ldflags:
-      - -s -w
-
+- id: terraform-provider-proxmox-network
+  env:
+    - CGO_ENABLED=0
+  mod_timestamp: '{{ .CommitTimestamp }}'
+  flags:
+    - -trimpath
+  ldflags:
+    - '-s -w -X main.version={{.Version}} -X main.commit={{.Commit}}'
+  goos:
+    - linux
+  goarch:
+    - amd64
+  ignore:
+    - goos: darwin
+      goarch: '386'
+  binary: '{{ .ProjectName }}_v{{ .Version }}'
 archives:
-  - id: default
-    name_template: "{{ .ProjectName }}_v{{ .Version }}_{{ .Os }}_{{ .Arch }}"
-    format: zip
-    files:
-      - LICENSE
-
+- format: zip
+  name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}'
 checksum:
-  name_template: "SHA256SUMS"
-
+  extra_files:
+    - glob: 'terraform-registry-manifest.json'
+      name_template: '{{ .ProjectName }}_{{ .Version }}_manifest.json'
+  name_template: '{{ .ProjectName }}_{{ .Version }}_SHA256SUMS'
+  algorithm: sha256
 signs:
   - artifacts: checksum
-    cmd: gpg
-    args: ["--batch", "--yes", "--armor", "--detach-sign", "--pinentry-mode", "loopback", "--output", "${signature}", "${artifact}"]
-    signature: "${artifact}.sig"
+    args:
+      # if you are using this in a GitHub action or some other automated pipeline, you 
+      # need to pass the batch flag to indicate its not interactive.
+      - "--batch"
+      - "--local-user"
+      - "{{ .Env.GPG_FINGERPRINT }}" # set this environment variable for your signing key
+      - "--output"
+      - "${signature}"
+      - "--detach-sign"
+      - "${artifact}"
+release:
+  extra_files:
+    - glob: 'terraform-registry-manifest.json'
+      name_template: '{{ .ProjectName }}_{{ .Version }}_manifest.json'
+  # If you want to manually examine the release before its live, uncomment this line:
+  # draft: true
+changelog:
+  disable: true
