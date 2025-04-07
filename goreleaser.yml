@@ -19,9 +19,9 @@ archives:
 
 checksum:
   name_template: "SHA256SUMS"
-  
+
 signs:
   - artifacts: checksum
-    args: ["--pinentry-mode", "loopback"]
-    cmd: "gpg"
+    cmd: gpg
+    args: ["--batch", "--yes", "--armor", "--detach-sign", "--pinentry-mode", "loopback", "--output", "${signature}", "${artifact}"]
     signature: "${artifact}.sig"
