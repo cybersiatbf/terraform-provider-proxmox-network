@@ -2,6 +2,7 @@ package proxmox
 
 import (
 	"fmt"
+	"log"
 	"sync"
 	"sync/atomic"
 
@@ -51,7 +52,10 @@ func maybeApplyConf(d *schema.ResourceData, meta interface{}) {
 			node := d.Get("node").(string)
 			endpoint := fmt.Sprintf("nodes/%s/network", node)
 			data := map[string]interface{}{}
-			go client.doRequest("PUT", endpoint, data)
+			_, err := client.doRequest("PUT", endpoint, data)
+			if err != nil {
+				log.Printf("[ERROR] Failed to apply network config: %v", err)
+			}
 		})
 	}
 }
