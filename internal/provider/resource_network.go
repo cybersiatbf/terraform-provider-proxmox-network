@@ -24,7 +24,7 @@ func resourceProxmoxNetworkInterface() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice([]string{"OVSBridge", "OVSIntPort"}, false),
+				ValidateFunc: validation.StringInSlice([]string{"OVSBridge", "OVSIntPort", "bridge", "vlan"}, false),
 			},
 			"cidr":              {Type: schema.TypeString, Optional: true},
 			"autostart":         {Type: schema.TypeBool, Optional: true, Default: true},

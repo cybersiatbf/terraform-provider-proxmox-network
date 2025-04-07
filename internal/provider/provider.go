@@ -21,7 +21,7 @@ func Provider() *schema.Provider {
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"cybernordic-proxmox-network_interface": resourceProxmoxNetworkInterface(),
+			"proxmox-network_interface": resourceProxmoxNetworkInterface(),
 		},
 		ConfigureFunc: providerConfigure,
 	}
