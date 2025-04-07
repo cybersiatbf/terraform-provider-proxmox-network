@@ -1,0 +1,25 @@
+project_name: terraform-provider-proxmox-network
+version: 2
+builds:
+  - binary: terraform-provider-proxmox-network
+    main: main.go
+    goos:
+      - linux
+    goarch:
+      - amd64
+    ldflags:
+      - -s -w
+
+archives:
+  - format: zip
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - LICENSE
+      - README.md
+
+checksum:
+  name_template: "SHA256SUMS"
+
+signs:
+  - artifacts: checksum
+    args: ["--pinentry-mode", "loopback"]
