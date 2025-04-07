@@ -19,7 +19,9 @@ archives:
 
 checksum:
   name_template: "SHA256SUMS"
-
+  
 signs:
   - artifacts: checksum
     args: ["--pinentry-mode", "loopback"]
+    cmd: "gpg"
+    signature: "${artifact}.sig"
