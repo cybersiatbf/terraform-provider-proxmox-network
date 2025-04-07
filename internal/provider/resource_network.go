@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -40,6 +41,9 @@ func resourceProxmoxNetworkInterface() *schema.Resource {
 }
 
 func resourceProxmoxNetworkInterfaceCreate(d *schema.ResourceData, meta interface{}) error {
+	atomic.AddInt32(&inflightOps, 1)
+	defer maybeApplyConf(d, meta)
+
 	client := meta.(*ClientConfig)
 
 	data := map[string]interface{}{
@@ -80,7 +84,7 @@ func resourceProxmoxNetworkInterfaceCreate(d *schema.ResourceData, meta interfac
 	}
 
 	d.SetId(fmt.Sprintf("%s/%s", node, d.Get("iface").(string)))
-	applyNetworkConf(d, meta)
+	// applyNetworkConf(d, meta)
 	return resourceProxmoxNetworkInterfaceRead(d, meta)
 }
 
@@ -119,6 +123,9 @@ func resourceProxmoxNetworkInterfaceRead(d *schema.ResourceData, meta interface{
 }
 
 func resourceProxmoxNetworkInterfaceUpdate(d *schema.ResourceData, meta interface{}) error {
+	atomic.AddInt32(&inflightOps, 1)
+	defer maybeApplyConf(d, meta)
+
 	client := meta.(*ClientConfig)
 
 	node := d.Get("node").(string)
@@ -145,11 +152,14 @@ func resourceProxmoxNetworkInterfaceUpdate(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("failed to update interface: %v", err)
 	}
 
-	applyNetworkConf(d, meta)
+	// applyNetworkConf(d, meta)
 	return resourceProxmoxNetworkInterfaceRead(d, meta)
 }
 
 func resourceProxmoxNetworkInterfaceDelete(d *schema.ResourceData, meta interface{}) error {
+	atomic.AddInt32(&inflightOps, 1)
+	defer maybeApplyConf(d, meta)
+
 	client := meta.(*ClientConfig)
 
 	node := d.Get("node").(string)
@@ -165,7 +175,7 @@ func resourceProxmoxNetworkInterfaceDelete(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("failed to read interface: %v", err)
 	}
 
-	applyNetworkConf(d, meta)
+	// applyNetworkConf(d, meta)
 
 	// Wait and confirm deletion
 	for i := 0; i < 5; i++ {
@@ -190,7 +200,7 @@ func resourceProxmoxNetworkInterfaceDelete(d *schema.ResourceData, meta interfac
 		}
 
 		time.Sleep(2 * time.Second)
-		applyNetworkConf(d, meta)
+		// applyNetworkConf(d, meta)
 	}
 
 	d.SetId("")

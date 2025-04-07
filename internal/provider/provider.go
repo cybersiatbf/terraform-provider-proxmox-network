@@ -1,7 +1,16 @@
 package proxmox
 
 import (
+	"fmt"
+	"sync"
+	"sync/atomic"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+)
+
+var (
+	applyOnce   sync.Once
+	inflightOps int32
 )
 
 func Provider() *schema.Provider {
@@ -33,4 +42,16 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 		APIToken: d.Get("api_token").(string),
 	}
 	return config, nil
+}
+
+func maybeApplyConf(d *schema.ResourceData, meta interface{}) {
+	if atomic.AddInt32(&inflightOps, -1) == 0 {
+		applyOnce.Do(func() {
+			client := meta.(*ClientConfig)
+			node := d.Get("node").(string)
+			endpoint := fmt.Sprintf("nodes/%s/network", node)
+			data := map[string]interface{}{}
+			go client.doRequest("PUT", endpoint, data)
+		})
+	}
 }
