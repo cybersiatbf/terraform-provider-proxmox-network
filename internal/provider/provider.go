@@ -3,14 +3,12 @@ package proxmox
 import (
 	"fmt"
 	"log"
-	"sync"
 	"sync/atomic"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 var (
-	applyOnce   sync.Once
 	inflightOps int32
 )
 
