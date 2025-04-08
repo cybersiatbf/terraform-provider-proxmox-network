@@ -84,7 +84,7 @@ func resourceProxmoxNetworkInterfaceCreate(d *schema.ResourceData, meta interfac
 	}
 
 	d.SetId(fmt.Sprintf("%s/%s", node, d.Get("iface").(string)))
-	// applyNetworkConf(d, meta)
+
 	return resourceProxmoxNetworkInterfaceRead(d, meta)
 }
 
@@ -152,7 +152,6 @@ func resourceProxmoxNetworkInterfaceUpdate(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("failed to update interface: %v", err)
 	}
 
-	// applyNetworkConf(d, meta)
 	return resourceProxmoxNetworkInterfaceRead(d, meta)
 }
 
@@ -174,8 +173,6 @@ func resourceProxmoxNetworkInterfaceDelete(d *schema.ResourceData, meta interfac
 		}
 		return fmt.Errorf("failed to read interface: %v", err)
 	}
-
-	// applyNetworkConf(d, meta)
 
 	// Wait and confirm deletion
 	for i := 0; i < 5; i++ {
@@ -200,21 +197,8 @@ func resourceProxmoxNetworkInterfaceDelete(d *schema.ResourceData, meta interfac
 		}
 
 		time.Sleep(2 * time.Second)
-		// applyNetworkConf(d, meta)
 	}
 
 	d.SetId("")
 	return fmt.Errorf("interface %s deletion could not be verified", iface)
-}
-
-func applyNetworkConf(d *schema.ResourceData, meta interface{}) {
-	client := meta.(*ClientConfig)
-
-	node := d.Get("node").(string)
-
-	endpoint := fmt.Sprintf("nodes/%s/network", node)
-
-	data := map[string]interface{}{}
-
-	client.doRequest("PUT", endpoint, data)
 }

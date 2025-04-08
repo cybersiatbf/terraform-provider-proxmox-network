@@ -47,15 +47,14 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 
 func maybeApplyConf(d *schema.ResourceData, meta interface{}) {
 	if atomic.AddInt32(&inflightOps, -1) == 0 {
-		applyOnce.Do(func() {
-			client := meta.(*ClientConfig)
-			node := d.Get("node").(string)
-			endpoint := fmt.Sprintf("nodes/%s/network", node)
-			data := map[string]interface{}{}
-			_, err := client.doRequest("PUT", endpoint, data)
-			if err != nil {
-				log.Printf("[ERROR] Failed to apply network config: %v", err)
-			}
-		})
+		client := meta.(*ClientConfig)
+		node := d.Get("node").(string)
+		endpoint := fmt.Sprintf("nodes/%s/network", node)
+		data := map[string]interface{}{}
+
+		_, err := client.doRequest("PUT", endpoint, data)
+		if err != nil {
+			log.Printf("[ERROR] Failed to apply network config: %v", err)
+		}
 	}
 }
